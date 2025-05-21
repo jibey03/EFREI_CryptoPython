@@ -16,19 +16,30 @@ key = Fernet.generate_key()
 f = Fernet(key)
 
 @app.route('/encrypt/<string:valeur>')
-def encryptage(valeur):
-    valeur_bytes = valeur.encode()  # Conversion str -> bytes
-    token = f.encrypt(valeur_bytes)  # Encrypt la valeur
-    return f"Valeur encryptée : {token.decode()}"  # Retourne le token en str
+def encrypt(valeur):
+    key = request.args.get('key')
+    if not key:
+        return "Erreur : clé de chiffrement manquante (?key=...)"
+    try:
+        f = Fernet(key.encode())
+        encrypted = f.encrypt(valeur.encode()).decode()
+        return f"Valeur chiffrée : {encrypted}"
+    except Exception as e:
+        return f"Clé invalide : {str(e)}"
 
 @app.route('/decrypt/<string:valeur>')
-def decryptage(valeur):
+def decrypt(valeur):
+    key = request.args.get('key')
+    if not key:
+        return "Erreur : clé de déchiffrement manquante (?key=...)"
     try:
-        valeur_bytes = valeur.encode()
-        decrypted = f.decrypt(valeur_bytes)
-        return f"Valeur décryptée : {decrypted.decode()}"
-    except:
-        return "Erreur : valeur non déchiffrable"
+        f = Fernet(key.encode())
+        decrypted = f.decrypt(valeur.encode()).decode()
+        return f"Valeur déchiffrée : {decrypted}"
+    except InvalidToken:
+        return "Erreur : la clé ne permet pas de déchiffrer cette valeur"
+    except Exception as e:
+        return f"Clé invalide : {str(e)}"
                                                                                                                                                      
 if __name__ == "__main__":
   app.run(debug=True)
