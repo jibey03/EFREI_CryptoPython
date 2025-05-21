@@ -16,6 +16,7 @@ def encrypt_get(valeur):
     valeur_bytes = valeur.encode()
     token = f.encrypt(valeur_bytes)
     return f"Valeur encryptée : {token.decode()}"
+    
 
 @app.route('/decrypt/<string:valeur>')
 def decrypt_get(valeur):
