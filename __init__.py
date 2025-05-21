@@ -4,42 +4,50 @@ from flask import render_template
 from flask import json
 from urllib.request import urlopen
 import sqlite3
-                                                                                                                                       
-app = Flask(__name__)                                                                                                                  
-                                                                                                                                       
+
+app = Flask(name)
+
 @app.route('/')
 def hello_world():
-    return render_template('hello.html')
-  
-#j'ai oublié le commit
+    return render_template('hello.html') #COMM2
+
 key = Fernet.generate_key()
 f = Fernet(key)
 
 @app.route('/encrypt/<string:valeur>')
-def encrypt(valeur):
-    key = request.args.get('key')
-    if not key:
-        return "Erreur : clé de chiffrement manquante. Exemple : /encrypt/bonjour?key=...."
-    try:
-        f = Fernet(key.encode())
-        encrypted = f.encrypt(valeur.encode()).decode()
-        return f"Valeur chiffrée : {encrypted}"
-    except Exception as e:
-        return f"Erreur lors du chiffrement : {str(e)}"
+def encryptage(valeur):
+    valeur_bytes = valeur.encode()  # Conversion str -> bytes
+    token = f.encrypt(valeur_bytes)  # Encrypt la valeur
+    return f"Valeur encryptée : {token.decode()}"  # Retourne le token en str
 
 @app.route('/decrypt/<string:valeur>')
-def decrypt(valeur):
-    key = request.args.get('key')
-    if not key:
-        return "Erreur : clé de déchiffrement manquante. Exemple : /decrypt/XXX?key=...."
+def decryptage(valeur):
     try:
-        f = Fernet(key.encode())
-        decrypted = f.decrypt(valeur.encode()).decode()
-        return f"Valeur déchiffrée : {decrypted}"
-    except InvalidToken:
-        return "Erreur : la clé ne permet pas de déchiffrer cette valeur (token invalide)"
+        valeur_bytes = valeur.encode()
+        decrypted = f.decrypt(valeur_bytes)
+        return f"Valeur décryptée : {decrypted.decode()}"
+    except:
+        return "Erreur : valeur non déchiffrable"
+
+@app.route('/encrypt/', methods=['POST'])
+def encrypt():
+    try:
+        data = request.get_json()
+        key = data['key'].encode()
+        message = data['message'].encode()
+
+        f = Fernet(key)
+        encrypted_token = f.encrypt(message).decode()
+        return jsonify({'encrypted_token': encrypted_token})
+
     except Exception as e:
-        return f"Erreur lors du déchiffrement : {str(e)}"
-                                                                                                                                                     
-if __name__ == "__main__":
+        return jsonify({'error': str(e)}), 400
+
+@app.route('/generate-key/', methods=['GET'])
+def generate_key():
+    key = Fernet.generate_key().decode()
+    return jsonify({'key': key})
+
+
+if name == "main":
   app.run(debug=True)
