@@ -10,7 +10,8 @@ app = Flask(__name__)
 @app.route('/')
 def hello_world():
     return render_template('hello.html')
-
+  
+#j'ai oublié le commit
 key = Fernet.generate_key()
 f = Fernet(key)
 
